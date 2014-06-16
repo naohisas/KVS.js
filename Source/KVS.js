@@ -1649,7 +1649,7 @@ KVS.Streamline.prototype =
 
         var method = this.integration_method;
         var integrator = [ euler, runge_kutta_2, runge_kutta_4 ];
-        var step_length = this.integration_step_length;
+        var step_length = this.integration_step_length * this.integration_direction;
         for ( var i = 0; i < this.integration_time; i++ )
         {
             vertex = next_vertex( vertex, step_length, integrator[ method ] );
@@ -1730,7 +1730,7 @@ KVS.Streamline.prototype =
 
         function direction( p )
         {
-            return this.integration_direction * interpolated_value( p ).normalize();
+            return interpolated_value( p ).normalize();
         }
 
         function interpolated_value( p )
