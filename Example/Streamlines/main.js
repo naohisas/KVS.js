@@ -21,6 +21,7 @@ function main()
         streamline.setIntegrationStepLength( 0.5 );
         streamline.setIntegrationTime( 500 );
         streamline.setIntegrationMethod( KVS.RungeKutta4 );
+        streamline.setIntegrationDirection( KVS.ForwardDirection );
         streamline.setLineWidth( 5 );
         streamline.setSeedPoint( seed_point );
 
