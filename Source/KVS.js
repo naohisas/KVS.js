@@ -10,10 +10,14 @@ var KVS = { REVISION: '0' };
 KVS.StripLine = 0;
 KVS.SegmentLine = 1;
 
-// Integration method used in the streamline culculation
+// Integration method used in the streamline calculation
 KVS.Euler = 0;
 KVS.RungeKutta2 = 1;
 KVS.RungeKutta4 = 2;
+
+// Trace direction used in the streamline calculation
+KVS.ForwardDirection = 1;
+KVS.BackwardDirection = -1;
 
 // Marching cubes table
 KVS.MarchingCubesTable = function()
@@ -1578,6 +1582,7 @@ KVS.Streamline = function()
     this.integration_step_length = 0.5;
     this.integration_time = 300;
     this.integration_method = KVS.RungeKutta4; // KVS.Euler, KVS.RungeKutta2, or KVS.RungeKutta4
+    this.integration_direction = KVS.ForwardDirection; // KVS.ForwardDirection, KVS.BackwardDirection
 };
 
 KVS.Streamline.prototype =
@@ -1607,6 +1612,11 @@ KVS.Streamline.prototype =
     setIntegrationMethod: function( method )
     {
         this.integration_method = method;
+    },
+
+    setIntegrationDirection: function( direction )
+    {
+        this.integration_direction = direction;
     },
 
     exec: function( volume )
@@ -1720,7 +1730,7 @@ KVS.Streamline.prototype =
 
         function direction( p )
         {
-            return interpolated_value( p ).normalize();
+            return this.integration_direction * interpolated_value( p ).normalize();
         }
 
         function interpolated_value( p )
