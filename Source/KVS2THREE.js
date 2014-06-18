@@ -142,7 +142,7 @@ KVS.ToTHREEParticleSystem = function( point )
         geometry.vertices.push( v );
     }
 
-    return new THREE.ParticleSystem( geometry, metrial );
+    return new THREE.ParticleSystem( geometry, material );
 };
 
 KVS.ToTHREELine = function( line )
