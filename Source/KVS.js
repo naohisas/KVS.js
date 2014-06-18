@@ -526,6 +526,7 @@ KVS.RainbowColorMap = function( smin, smax, s )
 // PointObject
 KVS.PointObject = function()
 {
+    this.size = 1;
     this.coords =[]; // [[x,y,z],[x,y,z],...]
     this.colors = []; // [[r,g,b],[r,g,b],...]
     this.min_coord = new KVS.Vec3();
