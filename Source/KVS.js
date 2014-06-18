@@ -877,6 +877,132 @@ KVS.UnstructuredVolumeObject.prototype =
     },
 };
 
+KVS.TetrahedraCell = function( volume )
+{
+    this.volume = volume;
+    this.cell_coords = [];
+    this.cell_values = [];
+    this.interpolation_functions = [];
+};
+
+KVS.TetrahedraCell.prototype =
+{
+    constructor: KVS.TetrahedraCell,
+
+    bind: function( index )
+    {
+        this.cell_coords = [];
+        this.cell_values = [];
+        this.interpolation_functions = [];
+
+        var id = this.volume.connections[ index ];
+        for ( var i = 0; i < id.length; i++ )
+        {
+            this.cell_coords.push( this.volume.coords[ id[i] ] );
+            this.cell_values.push( this.volume.values[ id[i] ] );
+            this.interpolation_functions.push( 0 );
+        }
+    },
+
+    setLocalPoint: function( local )
+    {
+        this.updateInterpolationFunctions( local );
+    },
+
+    localToGlobal: function( local )
+    {
+        this.setLocalPoint( local );
+
+        var x = 0;
+        var y = 0;
+        var z = 0;
+
+        var N = this.interpolation_functions;
+        for ( var i = 0; i < this.cell_coords.length; i++ )
+        {
+            x += this.cell_coords[i][0] * N[i];
+            y += this.cell_coords[i][1] * N[i];
+            z += this.cell_coords[i][2] * N[i];
+        }
+
+        return new KVS.Vec3( x, y, z );
+    },
+
+    value: function()
+    {
+        var N = this.interpolation_functions;
+        var nvalues = this.cell_values.length;
+        var veclen = this.cell_values[0].length;
+
+        var v = [];
+        for ( var i = 0; i < veclen; i++ )
+        {
+            v[i] = 0;
+            for ( var j = 0; j < nvalues; j++ )
+            {
+                v[i] += this.cell_values[j][i] * N[j];
+            }
+        }
+
+        return v;
+    },
+
+    randomSampling: function()
+    {
+        var s = Math.random();
+        var t = Math.random();
+        var u = Math.random();
+
+        var p, q, r;
+        if ( s + t + u <= 1 )
+        {
+            p = s;
+            q = t;
+            r = u;
+        }
+        else if ( s - t + u  >= 1 )
+        {
+            p = -u + 1;
+            q = -s + 1;
+            r = t;
+        }
+        else if ( s + t - u  >= 1 )
+        {
+            p = -s + 1;
+            q = -t + 1;
+            r = u;
+        }
+        else if ( -s + t + u >= 1 )
+        {
+            p = -u + 1;
+            q = s;
+            r = -t + 1;
+        }
+        else
+        {
+            p = 0.5 * s - 0.5 * t - 0.5 * u + 0.5;
+            q = -0.5 * s + 0.5 * t - 0.5 * u + 0.5;
+            r = -0.5 * s - 0.5 * t + 0.5 * u + 0.5;
+        }
+
+        var local = new KVS.Vec3( p, q, r );
+        return this.localToGlobal( local );
+    },
+
+    updateInterpolationFunctions: function( local )
+    {
+        var p = local.x;
+        var q = local.y;
+        var r = local.z;
+
+        var N = this.interpolation_functions;
+        N[0] = p;
+        N[1] = q;
+        N[2] = r;
+        N[3] = 1 - p - q - r;
+    },
+};
+
 KVS.JSONLoader = function( jsontext )
 {
    var name = "KVS.JSONLoader";
