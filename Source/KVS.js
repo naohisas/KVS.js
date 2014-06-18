@@ -877,12 +877,13 @@ KVS.UnstructuredVolumeObject.prototype =
     },
 };
 
-KVS.TetrahedraCell = function( volume )
+KVS.TetrahedraCell = function( volume, index )
 {
     this.volume = volume;
     this.cell_coords = [];
     this.cell_values = [];
     this.interpolation_functions = [];
+    if ( index != undefined ) { this.bind( index ); }
 };
 
 KVS.TetrahedraCell.prototype =
