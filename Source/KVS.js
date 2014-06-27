@@ -10,6 +10,11 @@ var KVS = { REVISION: '0' };
 KVS.StripLine = 0;
 KVS.SegmentLine = 1;
 
+// Axis type
+KVS.XAxis = 0;
+KVS.YAxis = 1;
+KVS.ZAxis = 2;
+
 // Integration method used in the streamline calculation
 KVS.Euler = 0;
 KVS.RungeKutta2 = 1;
@@ -348,6 +353,22 @@ KVS.Vec3.prototype =
         return new KVS.Vec3( this.x, this.y, this.z );
     },
 
+    copy: function( v )
+    {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+        return this;
+    },
+
+    swap: function( v )
+    {
+        KVS.Swap( this.x, v.x );
+        KVS.Swap( this.y, v.y );
+        KVS.Swap( this.z, v.z );
+        return this;
+    },
+
     set: function( x, y, z )
     {
         this.x = x;
@@ -456,6 +477,347 @@ KVS.Vec3.prototype =
     },
 };
 
+// Vector 4D
+KVS.Vec4 = function( x, y, z, w )
+{
+    this.x = x || 0;
+    this.y = y || 0;
+    this.z = z || 0;
+    this.w = w || 0;
+};
+
+KVS.Vec4.prototype =
+{
+    constructor: KVS.Vec4,
+
+    clone: function()
+    {
+        return new KVS.Vec4( this.x, this.y, this.z, this.w );
+    },
+
+    copy: function( v )
+    {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+        this.w = v.w;
+        return this;
+    },
+
+    swap: function( v )
+    {
+        KVS.Swap( this.x, v.x );
+        KVS.Swap( this.y, v.y );
+        KVS.Swap( this.z, v.z );
+        KVS.Swap( this.w, v.w );
+        return this;
+    },
+
+    set: function( x, y, z, w )
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+        return this;
+    },
+
+    fromArray: function( array )
+    {
+        this.x = array[0];
+        this.y = array[1];
+        this.z = array[2];
+        this.w = array[3];
+        return this;
+    },
+
+    toArray: function()
+    {
+        return [ this.x, this.y, this.z, this.w ];
+    },
+
+    add: function( v )
+    {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
+        this.w += v.w;
+        return this;
+    },
+
+    sub: function( v )
+    {
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
+        this.w -= v.w;
+        return this;
+    },
+
+    mul: function( v )
+    {
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
+        this.w *= v.w;
+        return this;
+    },
+
+    mulScalar: function( s )
+    {
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
+        this.w *= s;
+        return this;
+    },
+
+    div: function( v )
+    {
+        this.x /= v.x;
+        this.y /= v.y;
+        this.z /= v.z;
+        this.w /= v.w;
+        return this;
+    },
+
+    divScalar: function( s )
+    {
+        this.x /= s;
+        this.y /= s;
+        this.z /= s;
+        this.w /= s;
+        return this;
+    },
+
+    length: function()
+    {
+        return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
+    },
+
+    normalize: function()
+    {
+        return this.divScalar( this.length() );
+    },
+
+    min: function()
+    {
+        return Math.min( this.x, Math.min( this.y, Math.min( this.z, this.w ) ) );
+    },
+
+    max: function()
+    {
+        return Math.max( this.x, Math.max( this.y, Math.max( this.z, this.w ) ) );
+    },
+
+    dot: function( v )
+    {
+        return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
+    },
+};
+
+// 3x3 Matrix
+KVS.Mat3 = function( a00, a01, a02, a10, a11, a12, a20, a21, a22 )
+{
+    this.row =[];
+    this.row[0] = new KVS.Vec3( a00, a01, a02 );
+    this.row[1] = new KVS.Vec3( a10, a11, a12 );
+    this.row[2] = new KVS.Vec3( a20, a21, a22 );
+};
+
+KVS.Mat3.prototype =
+{
+    constructor: KVS.Mat3,
+
+    clone: function()
+    {
+        return new KVS.Mat3(
+            this.row[0].x, this.row[0].y, this.row[0].z,
+            this.row[1].x, this.row[1].y, this.row[1].z,
+            this.row[2].x, this.row[2].y, this.row[2].z
+        );
+    },
+
+    copy: function( m )
+    {
+        this.row[0].copy( m.row[0] );
+        this.row[1].copy( m.row[1] );
+        this.row[2].copy( m.row[2] );
+    },
+
+    swap: function( m )
+    {
+        this.row[0].swap( m.row[0] );
+        this.row[1].swap( m.row[1] );
+        this.row[2].swap( m.row[2] );
+        return this;
+    },
+
+    set: function( a00, a01, a02, a10, a11, a12, a20, a21, a22 )
+    {
+        this.row[0].set( a00, a01, a02 );
+        this.row[1].set( a10, a11, a12 );
+        this.row[2].set( a20, a21, a22 );
+        return this;
+    },
+
+    fromArray: function( array )
+    {
+        this.row[0].set( array[0], array[1], array[2] );
+        this.row[1].set( array[3], array[4], array[5] );
+        this.row[2].set( array[6], array[7], array[8] );
+        return this;
+    },
+
+    fromArray2D: function( array2d )
+    {
+        this.row[0].fromArray( array2d[0] );
+        this.row[1].fromArray( array2d[1] );
+        this.row[2].fromArray( array2d[2] );
+    },
+
+    toArray: function()
+    {
+        return [
+            this.row[0].x, this.row[0].y, this.row[0].z,
+            this.row[1].x, this.row[1].y, this.row[1].z,
+            this.row[2].x, this.row[2].y, this.row[2].z
+        ];
+    },
+
+    toArray2D: function()
+    {
+        return [ this.row[0].toArray(), this.row[1].toArray(), this.row[2].toArray() ];
+    },
+
+    add: function( m )
+    {
+        this.row[0].add( m.row[0] );
+        this.row[1].add( m.row[1] );
+        this.row[2].add( m.row[2] );
+        return this;
+    },
+
+    sub: function( m )
+    {
+        this.row[0].sub( m.row[0] );
+        this.row[1].sub( m.row[1] );
+        this.row[2].sub( m.row[2] );
+        return this;
+    },
+
+    mul: function( m )
+    {
+        this.row[0].x = this.row[0].x * m.row[0].x + this.row[0].y * m.row[1].x + this.row[0].z * m.row[2].x;
+        this.row[0].y = this.row[0].x * m.row[0].y + this.row[0].y * m.row[1].y + this.row[0].z * m.row[2].y;
+        this.row[0].z = this.row[0].x * m.row[0].z + this.row[0].y * m.row[1].z + this.row[0].z * m.row[2].z;
+        this.row[1].x = this.row[1].x * m.row[0].x + this.row[1].y * m.row[1].x + this.row[1].z * m.row[2].x;
+        this.row[1].y = this.row[1].x * m.row[0].y + this.row[1].y * m.row[1].y + this.row[1].z * m.row[2].y;
+        this.row[1].z = this.row[1].x * m.row[0].z + this.row[1].y * m.row[1].z + this.row[1].z * m.row[2].z;
+        this.row[2].x = this.row[2].x * m.row[0].x + this.row[2].y * m.row[1].x + this.row[2].z * m.row[2].x;
+        this.row[2].y = this.row[2].x * m.row[0].y + this.row[2].y * m.row[1].y + this.row[2].z * m.row[2].y;
+        this.row[2].z = this.row[2].x * m.row[0].z + this.row[2].y * m.row[1].z + this.row[2].z * m.row[2].z;
+        return this;
+    },
+
+    mulVec: function( v )
+    {
+        return new KVS.Vec3( this.row[0].dot( v ), this.row[1].dot( v ), this.row[2].dot( v ) );
+    },
+
+    mulScalar: function( s )
+    {
+        this.row[0].mulScalar( s );
+        this.row[1].mulScalar( s );
+        this.row[2].mulScalar( s );
+        return this;
+    },
+
+    divScalar: function( s )
+    {
+        this.row[0].divScalar( s );
+        this.row[1].divScalar( s );
+        this.row[2].divScalar( s );
+        return this;
+    },
+
+    zero: function()
+    {
+        this.row[0].set( 0, 0, 0 );
+        this.row[1].set( 0, 0, 0 );
+        this.row[2].set( 0, 0, 0 );
+        return this;
+    },
+
+    identity: function()
+    {
+        this.row[0].set( 1, 0, 0 );
+        this.row[1].set( 0, 1, 0 );
+        this.row[2].set( 0, 0, 1 );
+        return this;
+    },
+
+    transpose: function()
+    {
+        KVS.Swap( this.row[0].y, this.row[1].x );
+        KVS.Swap( this.row[0].z, this.row[2].x );
+        KVS.Swap( this.row[1].z, this.row[2].y );
+        return this;
+    },
+
+    invert: function( determinant )
+    {
+        var det22 = [
+            this.row[1].y * this.row[2].z - this.row[1].z * this.row[2].y,
+            this.row[1].x * this.row[2].z - this.row[1].z * this.row[2].x,
+            this.row[1].x * this.row[2].y - this.row[1].y * this.row[2].x,
+            this.row[0].y * this.row[2].z - this.row[0].z * this.row[2].y,
+            this.row[0].x * this.row[2].z - this.row[0].z * this.row[2].x,
+            this.row[0].x * this.row[2].y - this.row[0].y * this.row[2].x,
+            this.row[0].y * this.row[1].z - this.row[0].z * this.row[1].y,
+            this.row[0].x * this.row[1].z - this.row[0].z * this.row[1].x,
+            this.row[0].x * this.row[1].y - this.row[0].y * this.row[1].x,
+        ];
+
+        var det33 = this.row[0].x * det22[0] - this.row[0].y * det22[1] + this.row[0].z * det22[2];
+        if ( determinant != undefined ) determinant = det33;
+
+        this.set( det22[0], -det22[3], det22[6], -det22[1], det22[4], -det22[7], det22[2], -det22[5], det22[8] );
+        this.divScalar( det33 );
+        return this;
+    },
+
+    trace: function()
+    {
+        return this.row[0].x + this.row[1].y + this.row[2].z;
+    },
+
+    determinant: function()
+    {
+        return this.row[0].clone().cross( this.row[1] ).dot( this.row[2] );
+    },
+
+    transposed: function()
+    {
+        return this.clone().transpose();
+    },
+
+    inverted: function()
+    {
+        return this.clone().invert();
+    },
+
+    min: function()
+    {
+        return Math.min( this.row[0].min(), Math.min( this.row[1].min(), this.row[2].min() ) );
+    },
+
+    max: function()
+    {
+        return Math.max( this.row[0].max(), Math.max( this.row[1].max(), this.row[2].max() ) );
+    },
+};
+
 // Utilities
 KVS.Min = function( vec1, vec2 )
 {
@@ -477,6 +839,11 @@ KVS.Mix = function( x, y, a )
 {
     return x * ( 1.0 - a ) + y * a;
 };
+
+KVS.Swap = function( a, b )
+{
+    b = [ a, a = b ][0];
+}
 
 KVS.Clamp = function( a, b, c )
 {
@@ -929,6 +1296,17 @@ KVS.TetrahedraCell.prototype =
         return new KVS.Vec3( x, y, z );
     },
 
+    globalToLocal: function( global )
+    {
+        var C3 = new KVS.Vec3().fromArray( this.cell_coords[3] );
+        return this.jacobian().inverted().mulVec( global.clone().sub( C3 ) );
+    },
+
+    volume: function()
+    {
+        return Math.Abs( this.jacobian().determinant() ) / 6;
+    },
+
     value: function()
     {
         var N = this.interpolation_functions;
@@ -946,6 +1324,15 @@ KVS.TetrahedraCell.prototype =
         }
 
         return v;
+    },
+
+    gradient: function()
+    {
+        var dx = this.cells_values[0][0] - this.cells_values[3][0];
+        var dy = this.cells_values[1][0] - this.cells_values[3][0];
+        var dz = this.cells_values[2][0] - this.cells_values[3][0];
+        var g = new KVS.Vec3( dx, dy, dz );
+        return this.jacobian().inverted().transposed().mulVec( g );
     },
 
     randomSampling: function()
@@ -1001,6 +1388,18 @@ KVS.TetrahedraCell.prototype =
         N[1] = q;
         N[2] = r;
         N[3] = 1 - p - q - r;
+    },
+
+    jacobian: function()
+    {
+        var C0 = new KVS.Vec3().fromArray( this.cell_coords[0] );
+        var C1 = new KVS.Vec3().fromArray( this.cell_coords[1] );
+        var C2 = new KVS.Vec3().fromArray( this.cell_coords[2] );
+        var C3 = new KVS.Vec3().fromArray( this.cell_coords[3] );
+        var J30 = C0.sub( C3 ).toArray();
+        var J31 = C1.sub( C3 ).toArray();
+        var J32 = C2.sub( C3 ).toArray();
+        return new KVS.Mat3().fromArray2D( [ J30, J31, J32 ] );
     },
 };
 
@@ -1700,6 +2099,207 @@ KVS.Isosurface.prototype =
             }
         }
     }
+};
+
+// SlicePlane
+KVS.SlicePlane = function()
+{
+    this.coef = new KVS.Vec4();
+};
+
+KVS.SlicePlane.prototype =
+{
+    constructor: KVS.SlicePlane,
+
+    setPlane: function()
+    {
+        if ( arguments.length == 4 )
+        {
+            var a = arguments[0];
+            var b = arguments[1];
+            var c = arguments[2];
+            var d = arguments[3];
+            this.setPlaneWithCoefficients( a, b, c, d );
+        }
+        else if ( arguments.length == 2 )
+        {
+            var point = arguments[0];
+            var normal = arguments[1];
+            this.setPlaneWithPointAndNormal( point, normal );
+        }
+    },
+
+    setPlaneWithCoefficients: function( a, b, c, d )
+    {
+        this.coef = new KVS.Vec4( a, b, c, d );
+    },
+
+    setPlaneWithPointAndNormal: function( point, normal )
+    {
+        var w = point.clone().mulScalar( -1 ).dot( normal );
+        this.coef = new KVS.Vec4( normal.x, normal.y, normal.z, w );
+    },
+
+    exec: function( object )
+    {
+        if ( object instanceof KVS.StructuredVolumeObject )
+        {
+            return marching_cubes( object, this.coef );
+        }
+        else
+        {
+            return new KVS.PolygonObject();
+        }
+
+        function marching_cubes( object, coef )
+        {
+            var polygon = new KVS.PolygonObject();
+            var lut = new KVS.MarchingCubesTable();
+
+            var smin = object.min_value;
+            var smax = object.max_value;
+
+            for ( var z = 0; z < object.resolution.z - 1; z++ )
+            {
+                for ( var y = 0; y < object.resolution.y - 1; y++ )
+                {
+                    for ( var x = 0; x < object.resolution.x - 1; x++ )
+                    {
+                        var index = table_index( x, y, z );
+                        if ( index == 0 ) { continue; }
+                        if ( index == 255 ) { continue; }
+
+                        for ( var j = 0; lut.edgeID[index][j] != -1; j += 3 )
+                        {
+                            var eid0 = lut.edgeID[index][j];
+                            var eid1 = lut.edgeID[index][j+2];
+                            var eid2 = lut.edgeID[index][j+1];
+
+                            var vid0 = lut.vertexID[eid0][0];
+                            var vid1 = lut.vertexID[eid0][1];
+                            var vid2 = lut.vertexID[eid1][0];
+                            var vid3 = lut.vertexID[eid1][1];
+                            var vid4 = lut.vertexID[eid2][0];
+                            var vid5 = lut.vertexID[eid2][1];
+
+                            var v0 = new KVS.Vec3( x + vid0[0], y + vid0[1], z + vid0[2] );
+                            var v1 = new KVS.Vec3( x + vid1[0], y + vid1[1], z + vid1[2] );
+                            var v2 = new KVS.Vec3( x + vid2[0], y + vid2[1], z + vid2[2] );
+                            var v3 = new KVS.Vec3( x + vid3[0], y + vid3[1], z + vid3[2] );
+                            var v4 = new KVS.Vec3( x + vid4[0], y + vid4[1], z + vid4[2] );
+                            var v5 = new KVS.Vec3( x + vid5[0], y + vid5[1], z + vid5[2] );
+
+                            var v01 = interpolated_vertex( v0, v1 );
+                            var v23 = interpolated_vertex( v2, v3 );
+                            var v45 = interpolated_vertex( v4, v5 );
+
+                            polygon.coords.push( v01 );
+                            polygon.coords.push( v23 );
+                            polygon.coords.push( v45 );
+
+                            var s0 = interpolated_value( v0, v1 );
+                            var s1 = interpolated_value( v2, v3 );
+                            var s2 = interpolated_value( v4, v5 );
+                            var c0 = KVS.RainbowColorMap( smin, smax, s0 );
+                            var c1 = KVS.RainbowColorMap( smin, smax, s1 );
+                            var c2 = KVS.RainbowColorMap( smin, smax, s2 );
+
+                            polygon.colors.push( c0.toArray() );
+                            polygon.colors.push( c1.toArray() );
+                            polygon.colors.push( c2.toArray() );
+                        }
+                    }
+                }
+            }
+
+            var nfaces = polygon.coords.length / 3;
+            for ( var i = 0; i < nfaces; i++ )
+            {
+                var indices = [ 3 * i, 3 * i + 1, 3 * i + 2 ];
+                polygon.connections.push( indices );
+            }
+
+            return polygon;
+
+            function table_index( x, y, z )
+            {
+                var s0 = plane_function( x,     y,     z     );
+                var s1 = plane_function( x + 1, y,     z     );
+                var s2 = plane_function( x + 1, y + 1, z     );
+                var s3 = plane_function( x,     y + 1, z     );
+                var s4 = plane_function( x,     y,     z + 1 );
+                var s5 = plane_function( x + 1, y,     z + 1 );
+                var s6 = plane_function( x + 1, y + 1, z + 1 );
+                var s7 = plane_function( x,     y + 1, z + 1 );
+
+                var index = 0;
+                if ( s0 > 0 ) { index |=   1; }
+                if ( s1 > 0 ) { index |=   2; }
+                if ( s2 > 0 ) { index |=   4; }
+                if ( s3 > 0 ) { index |=   8; }
+                if ( s4 > 0 ) { index |=  16; }
+                if ( s5 > 0 ) { index |=  32; }
+                if ( s6 > 0 ) { index |=  64; }
+                if ( s7 > 0 ) { index |= 128; }
+
+                return index;
+            }
+
+            function interpolated_vertex( v0, v1 )
+            {
+                var s0 = plane_function( v0.x, v0.y, v0.z );
+                var s1 = plane_function( v1.x, v1.y, v1.z );
+                var a = Math.abs( s0 / ( s1 - s0 ) );
+
+                var x = KVS.Mix( v0.x, v1.x, a );
+                var y = KVS.Mix( v0.y, v1.y, a );
+                var z = KVS.Mix( v0.z, v1.z, a );
+
+                return [ x, y, z ];
+            }
+
+            function interpolated_value( v0, v1 )
+            {
+                var s0 = plane_function( v0.x, v0.y, v0.z );
+                var s1 = plane_function( v1.x, v1.y, v1.z );
+                var a = Math.abs( s0 / ( s1 - s0 ) );
+
+                var line_size = object.numberOfNodesPerLine();
+                var slice_size = object.numberOfNodesPerSlice();
+                var id0 = Math.floor( v0.x + v0.y * line_size + v0.z * slice_size );
+                var id1 = Math.floor( v1.x + v1.y * line_size + v1.z * slice_size );
+
+                return KVS.Mix( object.values[id0][0], object.values[id1][0], a );
+            }
+
+            function plane_function( x, y, z )
+            {
+                return coef.x * x + coef.y * y + coef.z * z + coef.w;
+            }
+        }
+    },
+};
+
+// OrthoSlice
+KVS.OrthoSlice = function()
+{
+    this.module = new KVS.SlicePlane();
+};
+
+KVS.OrthoSlice.prototype =
+{
+    constructor: KVS.OrthoSlice,
+
+    setPlane: function( position, axis )
+    {
+        var normal = new KVS.Mat3().identity().row[ axis ];
+        this.module.setPlaneWithPointAndNormal( normal.clone().mul( position ), normal );
+    },
+
+    exec: function( object )
+    {
+        return this.module.exec( object );
+    },
 };
 
 // Streamline
