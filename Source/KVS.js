@@ -1291,6 +1291,17 @@ KVS.TetrahedraCell.prototype =
         return new KVS.Vec3( x, y, z );
     },
 
+    globalToLocal: function( global )
+    {
+        var C3 = new KVS.Vec3().fromArray( this.cell_coords[3] );
+        return this.jacobian().inverted().mulVec( global.clone().sub( C3 ) );
+    },
+
+    volume: function()
+    {
+        return Math.Abs( this.jacobian().determinant() ) / 6;
+    },
+
     value: function()
     {
         var N = this.interpolation_functions;
@@ -1308,6 +1319,15 @@ KVS.TetrahedraCell.prototype =
         }
 
         return v;
+    },
+
+    gradient: function()
+    {
+        var dx = this.cells_values[0][0] - this.cells_values[3][0];
+        var dy = this.cells_values[1][0] - this.cells_values[3][0];
+        var dz = this.cells_values[2][0] - this.cells_values[3][0];
+        var g = new KVS.Vec3( dx, dy, dz );
+        return this.jacobian().inverted().transposed().mulVec( g );
     },
 
     randomSampling: function()
@@ -1363,6 +1383,18 @@ KVS.TetrahedraCell.prototype =
         N[1] = q;
         N[2] = r;
         N[3] = 1 - p - q - r;
+    },
+
+    jacobian: function()
+    {
+        var C0 = new KVS.Vec3().fromArray( this.cell_coords[0] );
+        var C1 = new KVS.Vec3().fromArray( this.cell_coords[1] );
+        var C2 = new KVS.Vec3().fromArray( this.cell_coords[2] );
+        var C3 = new KVS.Vec3().fromArray( this.cell_coords[3] );
+        var J30 = C0.sub( C3 ).toArray();
+        var J31 = C1.sub( C3 ).toArray();
+        var J32 = C2.sub( C3 ).toArray();
+        return new KVS.Mat3().fromArray2D( [ J30, J31, J32 ] );
     },
 };
 
