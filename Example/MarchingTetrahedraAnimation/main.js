@@ -5,10 +5,7 @@ function main()
     var mesh = undefined;
     var screen = new KVS.THREEScreen();
 
-    var z = volume.max_coord.max() * 1.8;
-    screen.init( volume.objectCenter() );
-    screen.camera.position.set( 0, 0, z );
-    screen.camera.up.set( 0, 0, 1 );
+    screen.init( volume );
     setup();
     animation( 0.01 );
     screen.loop();

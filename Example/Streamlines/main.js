@@ -1,20 +1,18 @@
 function main()
 {
     var volume = new KVS.CreateTornadoData( 64, 64, 64 );
-
     var screen = new KVS.THREEScreen();
-    screen.init( volume.objectCenter() );
-    screen.camera.position.set( 0, 0, 180 );
-    screen.camera.up.set( 0, 1, 0 );
+
+    screen.init( volume );
     setup();
     screen.loop();
 
     function setup()
     {
-        var color = new KVS.Vec3( 1, 1, 1 );
+        var color = new KVS.Vec3( 0, 0, 0 );
         var box = new KVS.BoundingBox();
         box.setColor( color );
-        box.setWidth( 5 );
+        box.setWidth( 2 );
 
         var seed_point = volume.objectCenter();
         var streamline = new KVS.Streamline();
