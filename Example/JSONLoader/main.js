@@ -3,19 +3,16 @@ function main( data )
     var volume = new KVS.JSONLoader( data );
     var screen = new KVS.THREEScreen();
 
-    var z = volume.max_coord.max() * 1.8;
-    screen.init( volume.objectCenter() );
-    screen.camera.position.set( 0, 0, z );
-    screen.camera.up.set( 0, 0, 1 );
+    screen.init( volume );
     setup();
     screen.loop();
 
     function setup()
     {
-        var color = new KVS.Vec3( 1, 1, 1 );
+        var color = new KVS.Vec3( 0, 0, 0 );
         var box = new KVS.BoundingBox();
         box.setColor( color );
-        box.setWidth( 5 );
+        box.setWidth( 2 );
 
         var smin = volume.min_value;
         var smax = volume.max_value;
