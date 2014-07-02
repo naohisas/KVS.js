@@ -4,11 +4,7 @@
 
 ## Usage
 
-Download [KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.js) or minified [KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.min.js) and link to KVS.js as follows:
-
-```html
-<script src="js/KVS.js"></script>
-```
+User can download [minified KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.min.js) and link to it in your html code as follows:
 
 ```html
 <script src="js/KVS.min.js"></script>
@@ -17,11 +13,17 @@ Download [KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.js) or minified [KV
 or link directory to KVS.js as follows:
 
 ```html
-<script src="http://naohisas.github.io/KVS.js/Build/KVS.js"></script>
-```
-
-```html
 <script src="http://naohisas.github.io/KVS.js/Build/KVS.min.js"></script>
 ```
 
-KVS.js uses [THREE.js](http://threejs.org) for WebGL 3D rendering.
+KVS.js also uses [THREE.js](http://threejs.org) for WebGL 3D rendering. By linking [KVS2THREE.js](http://naohisas.github.io/KVS.js/Build/KVS2THREE.min.js), you can use some THREE.js supported functions in your html code.
+
+```html
+<script src="js/KVS2THREE.min.js"></script>
+```
+
+or
+
+```html
+<script src="http://naohisas.github.io/KVS.js/Build/KVS2THREE.min.js"></script>
+```
