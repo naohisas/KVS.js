@@ -4,7 +4,7 @@
 
 ## Usage
 
-User can download [minified KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.min.js) and link to it in your html code as follows:
+User can download minified [KVS.js](http://naohisas.github.io/KVS.js/Build/KVS.min.js) and link to it in your html code as follows:
 
 ```html
 <script src="js/KVS.min.js"></script>
