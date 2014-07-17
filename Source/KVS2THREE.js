@@ -20,10 +20,26 @@ KVS.THREEScreen.prototype =
 {
     constructor: KVS.THREEScreen,
 
-    init: function( target )
+    init: function( target, options )
     {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        if (options === undefined) {
+            options = {};
+        }
+        if (options.width === undefined) {
+            options.width = window.innerWidth;
+        }
+        if (options.height === undefined) {
+            options.height = window.innerHeight;
+        }
+        if (options.enableAutoResize === undefined) {
+            options.enableAutoResize = true;
+        }
+        if (options.targetDom === undefined) {
+            options.targetDom = document.body;
+        }
+
+        this.width = options.width;
+        this.height = options.height;
 
         var fov = 45;
         var aspect = this.width / this.height;
@@ -52,8 +68,10 @@ KVS.THREEScreen.prototype =
         this.trackball.update();
         this.trackball.addEventListener( 'change', this.draw );
 
-        document.body.appendChild( this.renderer.domElement );
-        window.addEventListener( 'resize', this.resize.bind( this ), false );
+        options.targetDom.appendChild( this.renderer.domElement );
+        if (enableAutoResize) {
+          window.addEventListener( 'resize', this.resize.bind( this ), false );
+        }
     },
 
     resize: function()
