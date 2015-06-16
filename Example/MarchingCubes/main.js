@@ -28,7 +28,7 @@ function main()
         var isosurface = new KVS.Isosurface();
         isosurface.setIsovalue( isovalue );
 
-        document.getElementById('label').innerText = "Isovalue: " + Math.round( isovalue );
+        document.getElementById('label').innerHTML = "Isovalue: " + Math.round( isovalue );
 
         var line = KVS.ToTHREELine( box.exec( volume ) );
         mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
@@ -39,7 +39,7 @@ function main()
             .addEventListener('mousemove', function() {
                 var value = +document.getElementById('isovalue').value;
                 var isovalue = KVS.Mix( smin, smax, value );
-                document.getElementById('label').innerText = "Isovalue: " + Math.round( isovalue );
+                document.getElementById('label').innerHTML = "Isovalue: " + Math.round( isovalue );
             });
 
         document.getElementById('change-isovalue-button')
