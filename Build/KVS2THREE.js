@@ -65,6 +65,7 @@ KVS.THREEScreen.prototype =
         this.trackball.rotateSpeed = 3;
         this.trackball.radius = Math.min( this.width, this.height );
         this.trackball.target = center;
+        this.trackball.noRotate = false;
         this.trackball.update();
         this.trackball.addEventListener( 'change', this.draw );
 
@@ -89,6 +90,7 @@ KVS.THREEScreen.prototype =
     draw: function()
     {
         if ( this.renderer == undefined ) return;
+        this.trackball.handleResize();
         this.renderer.render( this.scene, this.camera );
         this.trackball.update();
     },
