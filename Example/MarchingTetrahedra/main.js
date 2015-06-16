@@ -21,10 +21,40 @@ function main()
         var isosurface = new KVS.Isosurface();
         isosurface.setIsovalue( isovalue );
 
+        document.getElementById('label').innerText = "Isovalue: " + isovalue.toFixed(3);
+
         var line = KVS.ToTHREELine( edge.exec( volume ) );
         var mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
         screen.scene.add( line );
         screen.scene.add( mesh );
+
+        document.getElementById('isovalue')
+            .addEventListener('mousemove', function() {
+                var value = +document.getElementById('isovalue').value;
+                var isovalue = KVS.Mix( smin, smax, value );
+                document.getElementById('label').innerText = "Isovalue: " + isovalue.toFixed(3);
+            });
+
+        document.getElementById('isovalue')
+            .addEventListener('mouseup', function() {
+                screen.scene.remove( mesh );
+                var value = +document.getElementById('isovalue').value;
+                var isovalue = KVS.Mix( smin, smax, value );
+                var isosurface = new KVS.Isosurface();
+                isosurface.setIsovalue( isovalue );
+                mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
+                screen.scene.add( mesh );
+
+                document.getElementById('label').innerText = "Isovalue: " + isovalue.toFixed(3);
+            });
+
+        window.addEventListener('resize', function() {
+            screen.resize([
+                window.innerWidth,
+                window.innerHeight
+            ]);
+        });
+
         screen.draw();
     }
 }
