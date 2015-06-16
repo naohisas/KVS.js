@@ -4,8 +4,14 @@ function main()
     //var volume = new KVS.CreateHydrogenData( 64, 64, 64 );
     var volume = new KVS.LobsterData();
     var screen = new KVS.THREEScreen();
+    var mesh;
 
-    screen.init( volume );
+    screen.init(volume, {
+      width: window.innerWidth * 0.8,
+      height: window.innerHeight,
+      targetDom: document.getElementById('display'),
+      enableAutoResize: false
+    });
     setup();
     screen.loop();
 
@@ -23,9 +29,33 @@ function main()
         isosurface.setIsovalue( isovalue );
 
         var line = KVS.ToTHREELine( box.exec( volume ) );
-        var mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
+        mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
         screen.scene.add( line );
         screen.scene.add( mesh );
+
+        document.getElementById('change-isovalue-button')
+            .addEventListener('click', function() {
+                screen.scene.remove( mesh );
+                var value = +document.getElementById('isovalue').value;
+                var isovalue = KVS.Mix( smin, smax, value );
+                var isosurface = new KVS.Isosurface();
+                isosurface.setIsovalue( isovalue );
+                mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
+                screen.scene.add( mesh );
+            });
+
+        window.addEventListener('resize', function() {
+            screen.resize([
+                window.innerWidth * 0.8,
+                window.innerHeight
+            ]);
+        });
+
         screen.draw();
     }
+}
+
+
+function changeIsovalue() {
+
 }

@@ -13,10 +13,26 @@ KVS.THREEScreen.prototype =
 {
     constructor: KVS.THREEScreen,
 
-    init: function( object )
+    init: function( object, options )
     {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        if (options === undefined) {
+            options = {};
+        }
+        if (options.width === undefined) {
+            options.width = window.innerWidth;
+        }
+        if (options.height === undefined) {
+            options.height = window.innerHeight;
+        }
+        if (options.enableAutoResize === undefined) {
+            options.enableAutoResize = true;
+        }
+        if (options.targetDom === undefined) {
+            options.targetDom = document.body;
+        }
+
+        this.width = options.width;
+        this.height = options.height;
 
         var max_range = object.max_coord.clone().sub( object.min_coord ).max();
         var center = object.objectCenter();
@@ -42,22 +58,26 @@ KVS.THREEScreen.prototype =
 //        this.renderer.setClearColor( new THREE.Color( "black" ) );
         this.renderer.setClearColor( new THREE.Color( 0.828125, 0.86328125, 0.89453125 ) );
 
-        this.trackball = new THREE.TrackballControls( this.camera );
+        options.targetDom.appendChild( this.renderer.domElement );
+
+        this.trackball = new THREE.TrackballControls( this.camera, this.renderer.domElement );
         this.trackball.staticMoving = true;
         this.trackball.rotateSpeed = 3;
         this.trackball.radius = Math.min( this.width, this.height );
         this.trackball.target = center;
+        this.trackball.noRotate = false;
         this.trackball.update();
         this.trackball.addEventListener( 'change', this.draw );
 
-        document.body.appendChild( this.renderer.domElement );
-        window.addEventListener( 'resize', this.resize.bind( this ), false );
+        if (options.enableAutoResize) {
+            window.addEventListener( 'resize', this.resize.bind( this ), false );
+        }
     },
 
-    resize: function()
+    resize: function(size)
     {
-        this.width = window.innerWidth;
-        this.height = window.innerHeight;
+        this.width = size === undefined ? window.innerWidth : size[0];
+        this.height = size === undefined ? window.innerHeight : size[1];
         var aspect = this.width / this.height;
 
         this.renderer.setSize( this.width, this.height );
@@ -70,6 +90,7 @@ KVS.THREEScreen.prototype =
     draw: function()
     {
         if ( this.renderer == undefined ) return;
+        this.trackball.handleResize();
         this.renderer.render( this.scene, this.camera );
         this.trackball.update();
     },
