@@ -28,10 +28,19 @@ function main()
         var isosurface = new KVS.Isosurface();
         isosurface.setIsovalue( isovalue );
 
+        document.getElementById('label').innerText = "Isovalue: " + Math.round( isovalue );
+
         var line = KVS.ToTHREELine( box.exec( volume ) );
         mesh = KVS.ToTHREEMesh( isosurface.exec( volume ) );
         screen.scene.add( line );
         screen.scene.add( mesh );
+
+        document.getElementById('isovalue')
+            .addEventListener('mousemove', function() {
+                var value = +document.getElementById('isovalue').value;
+                var isovalue = KVS.Mix( smin, smax, value );
+                document.getElementById('label').innerText = "Isovalue: " + Math.round( isovalue );
+            });
 
         document.getElementById('change-isovalue-button')
             .addEventListener('click', function() {

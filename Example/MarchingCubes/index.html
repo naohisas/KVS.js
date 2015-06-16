@@ -8,18 +8,16 @@
   <body style="margin:0">
     <div id="display" style="width: 80%; float: left;">
     </div>
-    <div id="controller" style="width: 20%; float: left;">
-      <label>Isovalue</label>
-      <div>
-        <input type="range" min="0" max="1" step="0.01" value="0.5" id="isovalue"/>
-      </div>
-      <button id="change-isovalue-button">Change</button>
+    <div id="controller" style="width:20%; float:left;">
+      <label id="label" style="font-family:Arial;"></label>
+      <input type="range" min="0" max="1" step="0.01" value="0.5" id="isovalue"/>
+      <button id="change-isovalue-button" style="font-family=Arial;">Apply</button>
     </div>
 
     <script src="http://mrdoob.github.io/three.js/build/three.min.js"></script>
     <script src="http://mrdoob.github.io/three.js/examples/js/controls/TrackballControls.js"></script>
-    <script src="../../Build/KVS.js"></script>
-    <script src="../../Build/KVS2THREE.js"></script>
+    <script src="http://naohisas.github.io/KVS.js/Build/KVS.min.js"></script>
+    <script src="http://naohisas.github.io/KVS.js/Build/KVS2THREE.min.js"></script>
     <script src="http://naohisas.github.io/KVS.js/Source/KVSLobsterData.js"></script>
     <script src="http://naohisas.github.io/KVS.js/Source/KVSSingleCubeData.js"></script>
     <script src="main.js"></script>
