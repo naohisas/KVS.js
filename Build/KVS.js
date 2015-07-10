@@ -2631,3 +2631,74 @@ KVS.UnstructuredVolumeObject.prototype =
     },
 };
 
+// Hash table
+KVS.Hash = function()
+{
+    this.bucket = {};
+};
+
+KVS.Hash.prototype =
+{
+    constructor: KVS.Hash,
+
+    insert: function( key, value )
+    {
+        this.bucket[key] = value;
+    },
+
+    find: function( key )
+    {
+        return this.bucket[key];
+    },
+
+    remove: function( key )
+    {
+        delete this.bucket[key];
+    },
+
+    contains: function( key )
+    {
+        return this.bucket.hasOwnProperty( key );
+    },
+
+    each: function( func )
+    {
+        for ( var key in this.bucket ) { func( key ); }
+    },
+};
+
+KVS.Queue = function()
+{
+    this.bucket = [];
+};
+
+KVS.Queue.prototype =
+{
+    constructor: KVS.Queue,
+
+    enqueue: function( element )
+    {
+        this.bucket.push( element );
+    },
+
+    dequeue: function()
+    {
+        return this.bucket.shift();
+    },
+
+    size: function()
+    {
+        return this.bucket.length;
+    },
+
+    peek: function()
+    {
+        return ( this.bucket.length > 0 ) ? this.bucket[0] : null;
+    },
+
+    empty: function()
+    {
+        return ( this.bucket.length == 0 );
+    },
+};
+
