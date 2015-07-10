@@ -50,7 +50,7 @@ KVS.THREEScreen.prototype =
         this.scene.add( this.camera );
 
         this.light = new THREE.DirectionalLight( new THREE.Color( "white" ) );
-        this.light.position = this.camera.position;
+        this.light.position.copy( this.camera.position );
         this.scene.add( this.light );
 
         this.renderer = new THREE.WebGLRenderer();
