@@ -28,5 +28,9 @@ function main()
         screen.scene.add( line1 );
         screen.scene.add( line2 );
         screen.draw();
+
+        document.addEventListener( 'mousemove', function() {
+            screen.light.position.copy( screen.camera.position );
+        });
     }
 }
