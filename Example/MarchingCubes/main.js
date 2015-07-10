@@ -53,6 +53,10 @@ function main()
                 screen.scene.add( mesh );
             });
 
+        document.addEventListener( 'mousemove', function() {
+            screen.light.position.copy( screen.camera.position );
+        });
+
         window.addEventListener('resize', function() {
             screen.resize([
                 window.innerWidth * 0.8,

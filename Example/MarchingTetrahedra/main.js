@@ -48,6 +48,10 @@ function main()
                 document.getElementById('label').innerHTML = "Isovalue: " + isovalue.toFixed(3);
             });
 
+        document.addEventListener( 'mousemove', function() {
+            screen.light.position.copy( screen.camera.position );
+        });
+
         window.addEventListener('resize', function() {
             screen.resize([
                 window.innerWidth,

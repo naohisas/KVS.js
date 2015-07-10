@@ -25,5 +25,9 @@ function main( data )
         screen.scene.add( line );
         screen.scene.add( mesh );
         screen.draw();
+
+        document.addEventListener( 'mousemove', function() {
+            screen.light.position.copy( screen.camera.position );
+        });
     }
 }
