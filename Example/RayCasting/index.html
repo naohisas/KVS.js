@@ -1,0 +1,268 @@
+<html>
+    <head>
+	<title>Ray Casting</title>
+    </head>
+    <body style="margin:0">
+	<script src="https://naohisas.github.io/KVS.js/Build/three.min.js"></script>
+	<script src="https://naohisas.github.io/KVS.js/Build/TrackballControls.js"></script>
+	<script src="https://naohisas.github.io/KVS.js/Build/KVS.min.js"></script>
+	<script src="https://naohisas.github.io/KVS.js/Build/KVS2THREE.min.js"></script>
+	<script src="https://naohisas.github.io/KVS.js/Source/KVSLobsterData.js"></script>
+
+	<script type="x-shader/x-vertex" id="bounding.vert">
+	 varying vec4 position_obj;
+
+	 void main()
+	 {
+	     gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+	     position_obj = vec4( position, 1.0 );
+	 }
+	</script>
+
+	<script type="x-shader/x-fragment" id="bounding.frag">
+	 varying vec4 position_obj;
+
+	 void main()
+	 {
+	     gl_FragColor = position_obj;
+	 }
+	</script>
+
+	<script type="x-shader/x-vertex" id="raycaster.vert">
+	 varying vec4 position_obj;
+	 varying vec4 position_clp;
+
+	 void main()
+	 {
+	     gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+	     position_obj = vec4( position, 1.0 );
+	     position_clp = gl_Position;
+	 }
+	</script>
+
+	<script type="x-shader/x-fragment" id="raycaster.frag">
+	 varying vec4 position_obj;
+	 varying vec4 position_clp;
+	 uniform vec3 volume_resolution;
+	 uniform sampler2D exit_points;
+	 uniform sampler2D volume_data;
+	 uniform sampler2D transfer_function_data;
+	 uniform vec3 light_position;
+	 uniform vec3 camera_position;
+	 uniform vec3 background_color;
+
+	 vec4 LookupTexture2D( sampler2D texture, vec2 index )
+	 {
+	     return texture2D( texture, index );
+	 }
+
+	 vec4 LookupTexture3D( sampler2D texture, vec3 resolution, vec3 index )
+	 {
+//	     index = clamp( index, vec3(0.0), vec3(1.0) );
+	     index.x = clamp( index.x, 0.0, 1.0 );
+	     vec3 p = index * ( resolution - vec3( 1.0 ) );
+
+	     float z = min( p.z, resolution.z - 1.0 );
+	     float z0 = min( floor( p.z ), resolution.z - 1.0 );
+	     float z1 = min( z0 + 1.0, resolution.z - 1.0 );
+
+	     float u0 = resolution.x * z0 + p.x;
+	     float u1 = resolution.x * z1 + p.x;
+	     float v = p.y;
+
+	     float width = resolution.x * resolution.z;
+	     float height = resolution.y;
+
+	     vec4 s0 = LookupTexture2D( texture, vec2( u0 / ( width - 1.0 ), v / ( height - 1.0 ) ) );
+	     vec4 s1 = LookupTexture2D( texture, vec2( u1 / ( width - 1.0 ), v / ( height - 1.0 ) ) );
+	     return mix( s0, s1, z - z0 );
+	 }
+
+	 vec3 VolumeGradient( sampler2D v, vec3 r, vec3 p, vec3 o )
+	 {
+	     float s0 = LookupTexture3D( v, r, p + vec3( o.x, 0.0, 0.0 ) ).w;
+	     float s1 = LookupTexture3D( v, r, p + vec3( 0.0, o.y, 0.0 ) ).w;
+	     float s2 = LookupTexture3D( v, r, p + vec3( 0.0, 0.0, o.z ) ).w;
+	     float s3 = LookupTexture3D( v, r, p - vec3( o.x, 0.0, 0.0 ) ).w;
+	     float s4 = LookupTexture3D( v, r, p - vec3( 0.0, o.y, 0.0 ) ).w;
+	     float s5 = LookupTexture3D( v, r, p - vec3( 0.0, 0.0, o.z ) ).w;
+	     return vec3( s3 - s0, s4 - s1, s5 - s2 );
+	 }
+
+	 vec3 LambertianReflection( vec3 C, vec3 L, vec3 N )
+	 {
+	     float ka = 0.3;
+	     float kd = 0.5;
+
+//	     float dd = dot( N, L );
+	     float dd = max( dot( N, L ), 0.0 );
+	     float Ia = ka;
+	     float Id = kd * dd;
+             return C * ( Ia + Id );
+	 }
+
+	 vec3 PhongReflection( vec3 C, vec3 L, vec3 N, vec3 V )
+	 {
+	     float ka = 0.3;
+	     float kd = 0.5;
+	     float ks = 0.8;
+	     float n = 50.0;
+
+	     vec3 R = reflect( -L, N );
+//	     float dd = dot( N, L );
+	     float dd = max( dot( N, L ), 0.0 );
+	     float ds = 0.0;
+	     if ( dd > 0.0 )
+	     {
+//		 ds = pow( dot( R, V ), n );
+		 ds = pow( max( dot( R, V ), 0.0 ), n );
+	     }
+
+	     float Ia = ka;
+	     float Id = kd * dd;
+	     float Is = ks * ds;
+	     return C * ( Ia + Id + Is );
+	 }
+
+	 vec3 BlinnPhongReflection( vec3 C, vec3 L, vec3 N, vec3 V )
+	 {
+	     float ka = 0.3;
+	     float kd = 0.5;
+	     float ks = 0.8;
+	     float n = 50.0;
+
+	     vec3 H = normalize( L + V );
+//	     float dd = dot( N, L );
+	     float dd = max( dot( N, L ), 0.0 );
+	     float ds = 0.0;
+	     if ( dd > 0.0 )
+	     {
+//		 ds = pow( dot( H, N ), n );
+		 ds = pow( max( dot( H, N ), 0.0 ), n );
+	     }
+
+	     float Ia = ka;
+	     float Id = kd * dd;
+	     float Is = ks * ds;
+	     return C * ( Ia + Id + Is );
+	 }
+
+	 vec3 CookTorranceReflection( vec3 C, vec3 L, vec3 N, vec3 V )
+	 {
+	     float ka = 0.3;
+	     float kd = 0.5;
+	     float ks = 0.8;
+	     float m = 0.2; // roughness. [0:smooth, 1:rough]
+	     float F0 = 0.2;
+
+//	     float dd = dot( N, L );
+	     float dd = max( dot( N, L ), 0.0 );
+	     float ds = 0.0;
+	     if ( dd > 0.0 )
+	     {
+		 vec3 H = normalize( L + V );
+		 float NL = dd;
+		 float NH = dot( N, H );
+		 float NV = dot( N, V );
+		 float VH = dot( V, H );
+
+		 // Beckmann distribution
+		 float NH2 = NH * NH;
+		 float NH4 = NH2 * NH2;
+		 float D = ( 1.0 / ( 4.0 * m * m * NH4 ) ) * exp( ( NH2 - 1.0 ) / ( m * m * NH2 ) );
+
+		 // Geometrical attenuation factor
+		 float G = min( 1.0, min( 2.0 * NH * NV / VH, 2.0 * NH * NL / VH ) );
+
+		 // Fresnel term
+		 float n = ( 1.0 + sqrt( F0 ) ) / ( 1.0 - sqrt( F0 ) );
+		 float c = VH;
+		 float g = sqrt( n * n + c * c - 1.0 );
+		 float gc0 = g - c;
+		 float gc1 = g + c;
+		 float cgc0 = c * gc1 - 1.0;
+		 float cgc1 = c * gc0 + 1.0;
+		 float f0 = ( gc0 * gc0 ) / ( gc1 * gc1 );
+		 float f1 = 1.0 + ( cgc0 / cgc1 ) * ( cgc0 / cgc1 );
+		 float F = 0.5 * f0 * f1;
+
+		 // Specular component
+		 ds = ( F / 3.14159265 ) * ( D * G / ( NL * NV ) );
+	     }
+
+	     float Ia = ka;
+	     float Id = kd * dd;
+	     float Is = ks * ds;
+	     return C * ( Ia + Id + Is );
+	 }
+
+	 void main()
+	 {
+	     float x = ( position_clp.x / position_clp.w + 1.0 ) / 2.0;
+	     float y = ( position_clp.y / position_clp.w + 1.0 ) / 2.0;
+	     vec2 index = vec2( x, y );
+	     vec3 exit_point = texture2D( exit_points, index ).xyz;
+	     vec3 entry_point = position_obj.xyz;
+	     if ( entry_point == exit_point ) { discard; return; }
+
+	     float dt = 0.5;
+	     float segment = distance( exit_point, entry_point );
+	     vec3 direction = dt * normalize( exit_point - entry_point );
+
+	     int nsteps = int( floor( segment / dt ) );
+	     if ( nsteps == 0 ) nsteps++;
+
+	     float opaque = 0.95;
+	     vec3 position = entry_point;
+	     vec4 color = vec4( 0.0, 0.0, 0.0, 0.0 );
+	     for ( int i = 0; i < 10000; i++ )
+	     {
+		 vec3 volume_index = vec3( ( position + vec3( 0.5 ) ) / volume_resolution );
+
+		 float s = LookupTexture3D( volume_data, volume_resolution, volume_index ).a;
+		 vec4 c = LookupTexture2D( transfer_function_data, vec2( s, 0.0 ) );
+		 if ( c.a != 0.0 )
+		 {
+		     vec3 offset_index = vec3( 1.0 ) / volume_resolution;
+		     vec3 normal = VolumeGradient( volume_data, volume_resolution, volume_index, offset_index );
+
+		     vec3 L = normalize( light_position - position );
+		     vec3 N = normalize( normal );
+//		     c.rgb = LambertianReflection( c.rgb, L, N );
+
+		     vec3 V = normalize( camera_position - position );
+//		     c.rgb = PhongReflection( c.rgb, L, N, V );
+//		     c.rgb = BlinnPhongReflection( c.rgb, L, N, V );
+		     c.rgb = CookTorranceReflection( c.rgb, L, N, V );
+
+		     // Front-to-back composition.
+		     color.rgb += ( 1.0 - color.a ) * c.a * c.rgb;
+		     color.a += ( 1.0 - color.a ) * c.a;
+
+		     // Early ray termination.
+  		     if ( color.a > opaque )
+		     {
+			 color.a = 1.0;
+			 break;
+		     }
+		 }
+
+		 position += direction;
+
+		 if ( i > nsteps ) { break; }
+	     }
+
+	     color.rgb += ( 1.0 - color.a ) * background_color;
+
+	     gl_FragColor = color;
+	 }
+	</script>
+
+	<script src="main.js"></script>
+	<script>
+	 main();
+	</script>
+    </body>
+</html>
